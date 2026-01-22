@@ -1,0 +1,550 @@
+{
+    "type": "FeatureCollection",
+    "generatedAt": "2026-01-05T12:00:00Z",
+    "features": [
+        {
+            "comment": "SCENARIO 1: NOTAM activating a Permanent Danger Area (EED123) with changed vertical limits. Issue: How do we link this to the permanent area? Do we verify IDs?",
+            "type": "Feature",
+            "id": "A0001/26",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            24.0,
+                            58.0
+                        ],
+                        [
+                            24.1,
+                            58.0
+                        ],
+                        [
+                            24.1,
+                            58.1
+                        ],
+                        [
+                            24.0,
+                            58.1
+                        ],
+                        [
+                            24.0,
+                            58.0
+                        ]
+                    ]
+                ]
+            },
+            "properties": {
+                "source": "NOTAM",
+                "identifier": "A0001/26",
+                "name": "EED123 ACT",
+                "class": "UNCLASSIFIED",
+                "restriction": "DANGER",
+                "relatedTo": "EED123",
+                "relationType": "ACTIVATION",
+                "lowerLimit": {
+                    "value": 0,
+                    "unit": "FT",
+                    "referenceDatum": "SFC"
+                },
+                "upperLimit": {
+                    "value": 4000,
+                    "unit": "FT",
+                    "referenceDatum": "AMSL"
+                },
+                "schedule": {
+                    "isPermanent": false,
+                    "activeFrom": "2026-01-06T08:00:00Z",
+                    "activeUntil": "2026-01-06T12:00:00Z",
+                    "text": "JAN 06 0800-1200",
+                    "activations": [
+                        {
+                            "start": "2026-01-06T08:00:00Z",
+                            "end": "2026-01-06T12:00:00Z",
+                            "status": "ACTIVE"
+                        }
+                    ]
+                },
+                "content": "DANGER AREA EED123 ACTIVATED. UPPER LIMIT RAISED TO 4000FT AMSL.",
+                "priority": "HIGH"
+            }
+        },
+        {
+            "comment": "SCENARIO 2: Circular Geometry (Nav Warning). Issue: GeoJSON doesn't support Circle. Schema has no 'radius' property.",
+            "type": "Feature",
+            "id": "A0002/26",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    25.5,
+                    59.0
+                ]
+            },
+            "properties": {
+                "source": "NOTAM",
+                "identifier": "A0002/26",
+                "name": "CRANE WORK",
+                "class": "G",
+                "restriction": "WARNING",
+                "radius": 1000,
+                "lowerLimit": {
+                    "value": 0,
+                    "unit": "FT",
+                    "referenceDatum": "SFC"
+                },
+                "upperLimit": {
+                    "value": 300,
+                    "unit": "FT",
+                    "referenceDatum": "AGL"
+                },
+                "schedule": {
+                    "isPermanent": false,
+                    "text": "EST 300FT RADIUS"
+                },
+                "content": "CRANE ERECTED. 300FT HEIGHT. 1KM RADIUS.",
+                "priority": "LOW",
+                "extendedProperties": {
+                    "q_line_radius": "1KM"
+                }
+            }
+        },
+        {
+            "comment": "SCENARIO 3: Complex / Multipart Schedule. Issue: Schema only has single activeFrom/activeUntil.",
+            "type": "Feature",
+            "id": "A0003/26",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            26.0,
+                            58.0
+                        ],
+                        [
+                            26.1,
+                            58.0
+                        ],
+                        [
+                            26.1,
+                            58.1
+                        ],
+                        [
+                            26.0,
+                            58.1
+                        ],
+                        [
+                            26.0,
+                            58.0
+                        ]
+                    ]
+                ]
+            },
+            "properties": {
+                "source": "NOTAM",
+                "identifier": "A0003/26",
+                "name": "MIL EXERCISE",
+                "restriction": "RESTRICTED",
+                "class": "UNCLASSIFIED",
+                "lowerLimit": {
+                    "value": 0,
+                    "unit": "FT",
+                    "referenceDatum": "SFC"
+                },
+                "upperLimit": {
+                    "value": 2000,
+                    "unit": "FT",
+                    "referenceDatum": "AMSL"
+                },
+                "schedule": {
+                    "isPermanent": false,
+                    "activeFrom": "2026-01-07T06:00:00Z",
+                    "activeUntil": "2026-01-20T18:00:00Z",
+                    "text": "MON-FRI 0600-1800 EXC JAN 15",
+                    "activations": [
+                        {
+                            "start": "2026-01-07T06:00:00Z",
+                            "end": "2026-01-07T14:32:00Z",
+                            "comment": "Computed: 0600 - (Sunset at 15:02 - 30m)"
+                        },
+                        {
+                            "start": "2026-01-08T06:00:00Z",
+                            "end": "2026-01-08T14:34:00Z",
+                            "comment": "Computed: 0600 - (Sunset at 15:04 - 30m)"
+                        },
+                        {
+                            "start": "2026-01-09T06:00:00Z",
+                            "end": "2026-01-09T14:36:00Z",
+                            "comment": "Computed: ... active windows pre-calculated"
+                        }
+                    ]
+                },
+                "content": "MILITARY EXERCISE AREA ACTIVE",
+                "priority": "HIGH"
+            }
+        },
+        {
+            "comment": "SCENARIO 4: Airspace Reclassification. Issue: Changing a property (Class) without changing geometry. Schema supports this via 'MODIFICATION'.",
+            "type": "Feature",
+            "id": "A0004/26",
+            "geometry": null,
+            "properties": {
+                "source": "NOTAM",
+                "identifier": "A0004/26",
+                "name": "EETZ CTR UPGRADE",
+                "class": "D",
+                "restriction": "RESTRICTED",
+                "relatedTo": "EETZ_CTR",
+                "relationType": "MODIFICATION",
+                "lowerLimit": {
+                    "value": 0,
+                    "unit": "FT",
+                    "referenceDatum": "SFC"
+                },
+                "upperLimit": {
+                    "value": 1500,
+                    "unit": "FT",
+                    "referenceDatum": "AMSL"
+                },
+                "schedule": {
+                    "isPermanent": false,
+                    "activeFrom": "2026-02-01T00:00:00Z",
+                    "activeUntil": "2026-02-01T23:59:00Z",
+                    "text": "FEB 01 ALL DAY"
+                },
+                "content": "TARTU CTR CLASS CHANGED TO D DUE TO INCREASED TRAFFIC.",
+                "priority": "MEDIUM"
+            }
+        },
+        {
+            "comment": "SCENARIO 5: Obstacle (Mast). Issue: Needs 'vertical extent' but usually modeled as point with upper limit. Schema handles this with upperLimit.",
+            "type": "Feature",
+            "id": "A0005/26",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    26.7,
+                    58.4
+                ]
+            },
+            "properties": {
+                "source": "NOTAM",
+                "identifier": "A0005/26",
+                "name": "NEW OBSTACLE",
+                "class": "G",
+                "restriction": "WARNING",
+                "radius": 200,
+                "lowerLimit": {
+                    "value": 0,
+                    "unit": "FT",
+                    "referenceDatum": "SFC"
+                },
+                "upperLimit": {
+                    "value": 350,
+                    "unit": "FT",
+                    "referenceDatum": "AGL"
+                },
+                "schedule": {
+                    "isPermanent": true,
+                    "text": "PERM",
+                    "activeFrom": "2026-01-05T12:00:00Z"
+                },
+                "content": "MAST ERECTED. 350FT AGL. LIGHTED.",
+                "priority": "LOW"
+            }
+        },
+        {
+            "comment": "SCENARIO 6: NOTAM Replacement (Chain). A0006 replaces A0005 (maybe coordinates were wrong).",
+            "type": "Feature",
+            "id": "A0006/26",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    26.71,
+                    58.41
+                ]
+            },
+            "properties": {
+                "source": "NOTAM",
+                "identifier": "A0006/26",
+                "name": "NEW OBSTACLE (CORRECTED)",
+                "class": "G",
+                "restriction": "WARNING",
+                "relatedTo": "A0005/26",
+                "relationType": "REPLACEMENT",
+                "radius": 200,
+                "lowerLimit": {
+                    "value": 0,
+                    "unit": "FT",
+                    "referenceDatum": "SFC"
+                },
+                "upperLimit": {
+                    "value": 350,
+                    "unit": "FT",
+                    "referenceDatum": "AGL"
+                },
+                "schedule": {
+                    "isPermanent": true,
+                    "text": "PERM",
+                    "activeFrom": "2026-01-05T12:00:00Z"
+                },
+                "content": "MAST ERECTED. CORRECTED COORDINATES. REPLACES A0005/26.",
+                "priority": "LOW"
+            }
+        },
+        {
+            "comment": "SCENARIO 7: Runway Closure. Geometry is LineString. Issue: Current parser only handles Polygons. Violation check will fail.",
+            "type": "Feature",
+            "id": "A0007/26",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        24.8,
+                        59.4
+                    ],
+                    [
+                        24.82,
+                        59.41
+                    ]
+                ]
+            },
+            "properties": {
+                "source": "NOTAM",
+                "identifier": "A0007/26",
+                "name": "RWY 08/26 CLSD",
+                "class": "UNCLASSIFIED",
+                "restriction": "PROHIBITED",
+                "radius": 50,
+                "lowerLimit": {
+                    "value": 0,
+                    "unit": "FT",
+                    "referenceDatum": "SFC"
+                },
+                {
+                    "comment": "SCENARIO 8: Polygon with Hole (Donut). Issue: GeoJSON winding order (Outer CCW, Inner CW). Parser must respect holes.",
+                    "type": "Feature",
+                    "id": "A0008/26",
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                            [
+                                [
+                                    24.0,
+                                    58.0
+                                ],
+                                [
+                                    25.0,
+                                    58.0
+                                ],
+                                [
+                                    25.0,
+                                    59.0
+                                ],
+                                [
+                                    24.0,
+                                    59.0
+                                ],
+                                [
+                                    24.0,
+                                    58.0
+                                ]
+                            ],
+                            [
+                                [
+                                    24.4,
+                                    58.4
+                                ],
+                                [
+                                    24.4,
+                                    58.6
+                                ],
+                                [
+                                    24.6,
+                                    58.6
+                                ],
+                                [
+                                    24.6,
+                                    58.4
+                                ],
+                                [
+                                    24.4,
+                                    58.4
+                                ]
+                            ]
+                        ]
+                    },
+                    "properties": {
+                        "source": "NOTAM",
+                        "identifier": "A0008/26",
+                        "name": "DONUT AREA",
+                        "restriction": "RESTRICTED",
+                        "class": "UNCLASSIFIED",
+                        "lowerLimit": {
+                            "value": 0,
+                            "unit": "FT",
+                            "referenceDatum": "SFC"
+                        },
+                        "upperLimit": {
+                            "value": 5000,
+                            "unit": "FT",
+                            "referenceDatum": "AMSL"
+                        },
+                        "schedule": {
+                            "isPermanent": false,
+                            "text": "ACTIVE"
+                        },
+                        "content": "RESTRICTED AREA WITH SAFE INNER CORRIDOR.",
+                        "priority": "HIGH"
+                    }
+                },
+                {
+                    "comment": "SCENARIO 9: MultiPolygon. Issue: Disjointed areas sharing schedule/ID.",
+                    "type": "Feature",
+                    "id": "A0009/26",
+                    "geometry": {
+                        "type": "MultiPolygon",
+                        "coordinates": [
+                            [
+                                [
+                                    [
+                                        26.0,
+                                        59.0
+                                    ],
+                                    [
+                                        26.1,
+                                        59.0
+                                    ],
+                                    [
+                                        26.1,
+                                        59.1
+                                    ],
+                                    [
+                                        26.0,
+                                        59.1
+                                    ],
+                                    [
+                                        26.0,
+                                        59.0
+                                    ]
+                                ]
+                            ],
+                            [
+                                [
+                                    [
+                                        26.5,
+                                        59.5
+                                    ],
+                                    [
+                                        26.6,
+                                        59.5
+                                    ],
+                                    [
+                                        26.6,
+                                        59.6
+                                    ],
+                                    [
+                                        26.5,
+                                        59.6
+                                    ],
+                                    [
+                                        26.5,
+                                        59.5
+                                    ]
+                                ]
+                            ]
+                        ]
+                    },
+                    "properties": {
+                        "source": "NOTAM",
+                        "identifier": "A0009/26",
+                        "name": "DISJOINTED AREA",
+                        "restriction": "DANGER",
+                        "class": "UNCLASSIFIED",
+                        "lowerLimit": {
+                            "value": 1000,
+                            "unit": "FT",
+                            "referenceDatum": "AMSL"
+                        },
+                        "upperLimit": {
+                            "value": 3000,
+                            "unit": "FT",
+                            "referenceDatum": "AMSL"
+                        },
+                        "schedule": {
+                            "isPermanent": false,
+                            "text": "DAYTIME"
+                        },
+                        "content": "TWO SEPARATE AREAS ACTIVE SIMULTANEOUSLY.",
+                        "priority": "MEDIUM"
+                    }
+                },
+                {
+                    "comment": "SCENARIO 10: Vertical Sandwich. Issue: Active only between FL100 and FL200. Parser must check altitude carefully.",
+                    "type": "Feature",
+                    "id": "A0010/26",
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                            [
+                                [
+                                    25.0,
+                                    58.0
+                                ],
+                                [
+                                    25.5,
+                                    58.0
+                                ],
+                                [
+                                    25.5,
+                                    58.5
+                                ],
+                                [
+                                    25.0,
+                                    58.5
+                                ],
+                                [
+                                    25.0,
+                                    58.0
+                                ]
+                            ]
+                        ]
+                    },
+                    "properties": {
+                        "source": "NOTAM",
+                        "identifier": "A0010/26",
+                        "name": "HIGH ALTITUDE EXERCISE",
+                        "restriction": "TEMPORARY_RESERVED",
+                        "class": "C",
+                        "lowerLimit": {
+                            "value": 100,
+                            "unit": "FL",
+                            "referenceDatum": "STD"
+                        },
+                        "upperLimit": {
+                            "value": 200,
+                            "unit": "FL",
+                            "referenceDatum": "STD"
+                        },
+                        "schedule": {
+                            "isPermanent": false,
+                            "text": "0800-1200"
+                        },
+                        "content": "TRA ACTIVE FL100-FL200. G CLASS BELOW.",
+                        "priority": "LOW"
+                    }
+                },
+                "upperLimit": {
+                    "value": 0,
+                    "unit": "FT",
+                    "referenceDatum": "SFC"
+                },
+                "schedule": {
+                    "isPermanent": false,
+                    "text": "WORK IN PROGRESS",
+                    "activeFrom": "2026-01-05T00:00:00Z"
+                },
+                "content": "RWY 08/26 CLOSED DUE TO WIP.",
+                "priority": "HIGH"
+            }
+        }
+    ]
+}
