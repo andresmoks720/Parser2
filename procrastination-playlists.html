@@ -1,0 +1,1489 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Procrastination playlists</title>
+  <style>
+    :root {
+      --paper: #f5f3ed;
+      --card: #fffefa;
+      --ink: #1e2925;
+      --muted: #68736d;
+      --line: #dedfd6;
+      --green: #17664f;
+      --green-soft: #e6f2eb;
+      --orange: #bd5e2e;
+      --orange-soft: #fff0e5;
+      --red: #a83e3e;
+      --red-soft: #fae9e6;
+      --shadow: 0 14px 38px rgba(36, 47, 40, .07);
+      --serif: Georgia, "Times New Roman", serif;
+      --sans: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: var(--sans);
+      line-height: 1.5;
+    }
+    a { color: inherit; }
+    .page { width: min(1080px, calc(100% - 40px)); margin: 0 auto; }
+    header { padding: 54px 0 30px; }
+    .eyebrow {
+      display: flex; align-items: center; gap: 10px;
+      color: var(--green); font-size: .73rem; font-weight: 750;
+      letter-spacing: .14em; text-transform: uppercase;
+    }
+    .eyebrow::before { content: ""; width: 25px; height: 2px; background: var(--orange); }
+    h1 {
+      max-width: 760px; margin: 15px 0 12px;
+      font: 500 clamp(2.8rem, 7vw, 5.8rem)/.98 var(--serif);
+      letter-spacing: -.055em;
+    }
+    .intro { max-width: 580px; margin: 0; color: var(--muted); font-size: 1.05rem; }
+    .toolbar {
+      position: relative; display: grid; grid-template-columns: minmax(220px, 1fr);
+      align-items: center; gap: 20px; padding: 18px 20px;
+      border: 1px solid var(--line); border-radius: 16px; background: var(--card);
+      box-shadow: var(--shadow);
+    }
+    .search-wrap { position: relative; }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #78847d; pointer-events: none; }
+    input[type="search"] {
+      width: 100%; min-height: 48px; padding: 0 15px 0 42px;
+      border: 1px solid var(--line); border-radius: 10px; background: #fbfaf6;
+      color: var(--ink); font: inherit; outline: none;
+    }
+    input[type="search"]:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(23,102,79,.12); }
+    .status-line { min-height: 26px; margin: 14px 2px 18px; color: var(--muted); font-size: .86rem; }
+    .status-line.error { color: var(--red); }
+    .playlist-list { display: grid; gap: 17px; padding-bottom: 70px; }
+    .playlist {
+      overflow: hidden; border: 1px solid var(--line); border-radius: 15px;
+      background: var(--card); box-shadow: 0 5px 18px rgba(36,47,40,.035);
+    }
+    .playlist-head {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;
+      padding: 21px 23px; background: linear-gradient(110deg, #fffefa 30%, #f3f5ed 100%);
+    }
+    .playlist-title { margin: 0; font: 600 clamp(1.15rem, 2.5vw, 1.45rem)/1.25 var(--serif); }
+    .playlist-title a, .video-title a { text-decoration: none; }
+    .playlist-title a:hover, .video-title a:hover { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
+    .playlist-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+    .video-count { color: var(--muted); font-size: .8rem; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px; min-height: 23px; padding: 2px 9px;
+      border-radius: 999px; font-size: .7rem; font-weight: 750; letter-spacing: .02em;
+      white-space: nowrap;
+    }
+    .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .badge.ok { color: var(--green); background: var(--green-soft); }
+    .badge.bad { color: var(--red); background: var(--red-soft); }
+    .badge.pending, .badge.unknown { color: #7a6237; background: #f5efdf; }
+    .badge.deleted, .badge.bad { color: var(--red); background: var(--red-soft); }
+    .badge.private { color: var(--orange); background: var(--orange-soft); }
+    .playlist-link { flex: none; color: var(--green); font-size: .82rem; font-weight: 700; text-decoration: none; }
+    .playlist-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .video-list { margin: 0; padding: 0; list-style: none; }
+    .video-row { display: grid; grid-template-columns: 30px minmax(140px, 220px) minmax(0, 1fr); align-items: center; gap: 15px; padding: 15px; }
+    .video-row[hidden], .playlist[hidden] { display: none; }
+    .video-index { color: #9aa19a; font: .8rem var(--serif); font-variant-numeric: tabular-nums; }
+    .video-title { min-width: 0; margin: 0; font: 600 clamp(1rem, 2vw, 1.25rem)/1.3 var(--serif); overflow-wrap: anywhere; }
+    .video-title a { color: #34423b; }
+    .video-title .unlinked { color: #66716b; }
+    .video-preview { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; padding: 0; border: 0; border-radius: 9px; background: #dfe4dc; cursor: pointer; }
+    .video-preview img, .video-preview iframe { display: block; width: 100%; height: 100%; border: 0; object-fit: cover; }
+    .video-player { grid-column: 2; width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 9px; background: #18251f; }
+    .video-preview::after { content: "▶"; position: absolute; top: 50%; left: 50%; display: grid; width: 43px; height: 31px; place-items: center; padding-left: 3px; border-radius: 9px; color: white; background: rgba(24, 37, 31, .86); transform: translate(-50%, -50%); transition: background .2s, transform .2s; }
+    .video-preview:hover::after, .video-preview:focus-visible::after { background: #c8322d; transform: translate(-50%, -50%) scale(1.07); }
+    .video-preview:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+    .video-copy { min-width: 0; }
+    .watch-link { display: inline-block; margin-top: 10px; color: var(--green); font-size: .8rem; font-weight: 700; text-decoration: none; }
+    .watch-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .empty {
+      padding: 48px 20px; border: 1px dashed #c9cec4; border-radius: 14px;
+      color: var(--muted); text-align: center; background: rgba(255,254,250,.55);
+    }
+    .empty strong { display: block; margin-bottom: 5px; color: var(--ink); font: 1.35rem var(--serif); }
+    footer { padding: 0 0 28px; color: #8a938b; font-size: .76rem; }
+    @media (max-width: 640px) {
+      .page { width: min(100% - 28px, 1080px); }
+      header { padding: 38px 0 24px; }
+      .toolbar { grid-template-columns: 1fr; gap: 15px; padding: 14px; }
+      .video-row { grid-template-columns: 20px minmax(110px, 38vw) minmax(0, 1fr); gap: 10px; padding: 11px; }
+      .video-title { font-size: .96rem; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      header, .toolbar, .playlist { animation: arrive .45s both; }
+      .toolbar { animation-delay: .06s; }
+      @keyframes arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div class="eyebrow">A collection for later</div>
+      <h1>Procrastination<br>in the wild</h1>
+      <p class="intro">A small library of videos with “procrast” in the title. Pick a thumbnail to preview, or open the video on YouTube.</p>
+    </header>
+
+    <section class="toolbar" aria-label="Video search">
+      <label class="search-wrap">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="search" type="search" placeholder="Search videos…" autocomplete="off" aria-label="Search videos">
+      </label>
+    </section>
+    <p id="status" class="status-line" role="status">Preparing the embedded collection…</p>
+    <section id="playlists" class="playlist-list" aria-label="Matching videos"></section>
+    <footer>Choose a thumbnail to load the preview, or use the direct YouTube link if playback is unavailable.</footer>
+  </main>
+
+  <script type="application/json" id="playlist-data">
+{
+  "query": {
+    "title_pattern": "procrast*",
+    "case_sensitive": false,
+    "matching_method": "literal case-insensitive substring match of video title containing procrast",
+    "excluded_titles": [
+      "Anti-Procrastination 18Hz Beta Binaural Beats Strong Focus for ADHD and Neurodivergent Students"
+    ]
+  },
+  "source_counts": {
+    "playlists": 800,
+    "playlist_entries": 32664,
+    "unique_videos": 29305
+  },
+  "matching_entry_count": 70,
+  "unique_video_count": 43,
+  "videos": [
+    {
+      "video_id": "FWTNMzK9vG4",
+      "title": "Why you procrastinate even when it feels bad",
+      "url": "https://www.youtube.com/watch?v=FWTNMzK9vG4",
+      "playlists": [
+        {
+          "playlist_title": "Pro",
+          "playlist_id": "PLStBM_NNOqQQ",
+          "source_entry_position": 0
+        },
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 39
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "uBwGvboe4hM",
+      "title": "Why We Procrastinate and How to Fix it",
+      "url": "https://www.youtube.com/watch?v=uBwGvboe4hM",
+      "playlists": [
+        {
+          "playlist_title": "Pro",
+          "playlist_id": "PLStBM_NNOqQQ",
+          "source_entry_position": 1
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "zE_qyzYL7u0",
+      "title": "Why Procrastination Is Tied to Complex Trauma and How to Heal It",
+      "url": "https://www.youtube.com/watch?v=zE_qyzYL7u0",
+      "playlists": [
+        {
+          "playlist_title": "Pro",
+          "playlist_id": "PLStBM_NNOqQQ",
+          "source_entry_position": 2
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "bavdneN9sKg",
+      "title": "Mental Health Bootcamp: Procrastinate MORE not LESS | Healthy Gamer Webinar #3",
+      "url": "https://www.youtube.com/watch?v=bavdneN9sKg",
+      "playlists": [
+        {
+          "playlist_title": "Pro",
+          "playlist_id": "PLStBM_NNOqQQ",
+          "source_entry_position": 3
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "ROK_7zDkQeg",
+      "title": "How To Stop Procrastinating",
+      "url": "https://www.youtube.com/watch?v=ROK_7zDkQeg",
+      "playlists": [
+        {
+          "playlist_title": "Pro",
+          "playlist_id": "PLStBM_NNOqQQ",
+          "source_entry_position": 4
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "tJYq5QjaIAg",
+      "title": "How to Stop Procrastinating in 3 Simple Steps ‼️ #studytips #studywithme #college #productivity",
+      "url": "https://www.youtube.com/watch?v=tJYq5QjaIAg",
+      "playlists": [
+        {
+          "playlist_title": "Pro",
+          "playlist_id": "PLStBM_NNOqQQ",
+          "source_entry_position": 5
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "IoJx9sXeP34",
+      "title": "How to Fight Your Procrastination Anxiety (and Win!)",
+      "url": "https://www.youtube.com/watch?v=IoJx9sXeP34",
+      "playlists": [
+        {
+          "playlist_title": "Pro",
+          "playlist_id": "PLStBM_NNOqQQ",
+          "source_entry_position": 12
+        },
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 129
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "1MGhGrKnGAk",
+      "title": "Stop Procrastinating — Restore Focus & Start Working (2 Hours)",
+      "url": "https://www.youtube.com/watch?v=1MGhGrKnGAk",
+      "playlists": [
+        {
+          "playlist_title": "tripx4",
+          "playlist_id": "PLwCumDyBKsXXttbYQSMVbu5ZLdQ80kYRc",
+          "source_entry_position": 2
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "foq_onP7pow",
+      "title": "Why You Can't Stop Procrastinating (It's Not Laziness)",
+      "url": "https://www.youtube.com/watch?v=foq_onP7pow",
+      "playlists": [
+        {
+          "playlist_title": "w7",
+          "playlist_id": "PLwCumDyBKsXUn0IjWFuhT5UFx_ym-SEc8",
+          "source_entry_position": 39
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "N65NPYRN8z8",
+      "title": "Watch Him Dissolve Procrastination In 11 Minutes (Coaching With Joe Hudson)",
+      "url": "https://www.youtube.com/watch?v=N65NPYRN8z8",
+      "playlists": [
+        {
+          "playlist_title": "N4",
+          "playlist_id": "PLwCumDyBKsXWz-E9osCo_0yksyOwEO2g0",
+          "source_entry_position": 199
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "baKCC2uTbRc",
+      "title": "Stop Procrastinating With Note-Taking Apps Like Obsidian, Roam, Logseq",
+      "url": "https://www.youtube.com/watch?v=baKCC2uTbRc",
+      "playlists": [
+        {
+          "playlist_title": "rnd3",
+          "playlist_id": "PLwCumDyBKsXVMgoloLELma9GvDiY7FuiK",
+          "source_entry_position": 37
+        },
+        {
+          "playlist_title": "notes",
+          "playlist_id": "PLwCumDyBKsXXZaDnRQWh2VpZdJkU3mXY5",
+          "source_entry_position": 5
+        },
+        {
+          "playlist_title": "Rnd2",
+          "playlist_id": "PLwCumDyBKsXW5kysIpKe-RXChJlS-q6Jr",
+          "source_entry_position": 117
+        },
+        {
+          "playlist_title": "py2",
+          "playlist_id": "PLwCumDyBKsXXAKGaeHYkrk-wj1YCLgqcc",
+          "source_entry_position": 54
+        },
+        {
+          "playlist_title": "Org",
+          "playlist_id": "PLwCumDyBKsXVVINCHW9muwBQeinw5WSXn",
+          "source_entry_position": 72
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "VBifDZwPiI4",
+      "title": "How To Defuse Procrastination And Be Productive (Without Using Willpower)",
+      "url": "https://www.youtube.com/watch?v=VBifDZwPiI4",
+      "playlists": [
+        {
+          "playlist_title": "rnd3",
+          "playlist_id": "PLwCumDyBKsXVMgoloLELma9GvDiY7FuiK",
+          "source_entry_position": 243
+        },
+        {
+          "playlist_title": "procrastination",
+          "playlist_id": "PLwCumDyBKsXVA1VqZEgMS0iOPVlrNgE1d",
+          "source_entry_position": 306
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "tDenff-I2aQ",
+      "title": "Shadow Work Will Cure Your Procrastination (Powerful Exercise)",
+      "url": "https://www.youtube.com/watch?v=tDenff-I2aQ",
+      "playlists": [
+        {
+          "playlist_title": "Alexi",
+          "playlist_id": "PLwCumDyBKsXUiWSnAqXwdctWr97FuwY6e",
+          "source_entry_position": 115
+        },
+        {
+          "playlist_title": "procrastination",
+          "playlist_id": "PLwCumDyBKsXVA1VqZEgMS0iOPVlrNgE1d",
+          "source_entry_position": 150
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "mmqok1dJrVs",
+      "title": "How to Stop Procrastinating and Finish Projects",
+      "url": "https://www.youtube.com/watch?v=mmqok1dJrVs",
+      "playlists": [
+        {
+          "playlist_title": "procrastination",
+          "playlist_id": "PLwCumDyBKsXVA1VqZEgMS0iOPVlrNgE1d",
+          "source_entry_position": 105
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "Xp805f-j1VI",
+      "title": "Why People with ADHD Procrastinate (And 4 Brain-Based Ways to Get Started)",
+      "url": "https://www.youtube.com/watch?v=Xp805f-j1VI",
+      "playlists": [
+        {
+          "playlist_title": "procrastination",
+          "playlist_id": "PLwCumDyBKsXVA1VqZEgMS0iOPVlrNgE1d",
+          "source_entry_position": 139
+        },
+        {
+          "playlist_title": "Org",
+          "playlist_id": "PLwCumDyBKsXVVINCHW9muwBQeinw5WSXn",
+          "source_entry_position": 305
+        },
+        {
+          "playlist_title": "tmp1",
+          "playlist_id": "PLwCumDyBKsXUXRE2p2NkucHZyGtFzAx0k",
+          "source_entry_position": 396
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "-Feev1ZK6L4",
+      "title": "How to Beat Procrastination Without Becoming David Goggins",
+      "url": "https://www.youtube.com/watch?v=-Feev1ZK6L4",
+      "playlists": [
+        {
+          "playlist_title": "procrastination",
+          "playlist_id": "PLwCumDyBKsXVA1VqZEgMS0iOPVlrNgE1d",
+          "source_entry_position": 143
+        },
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 184
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "3DAN4zRMfYI",
+      "title": "The Real Cause of Procrastination Explained",
+      "url": "https://www.youtube.com/watch?v=3DAN4zRMfYI",
+      "playlists": [
+        {
+          "playlist_title": "procrastination",
+          "playlist_id": "PLwCumDyBKsXVA1VqZEgMS0iOPVlrNgE1d",
+          "source_entry_position": 183
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "6_596JG9cmI",
+      "title": "This Procrastination Habit is Killing Your Dreams.  Please Stop.",
+      "url": "https://www.youtube.com/watch?v=6_596JG9cmI",
+      "playlists": [
+        {
+          "playlist_title": "procrastination",
+          "playlist_id": "PLwCumDyBKsXVA1VqZEgMS0iOPVlrNgE1d",
+          "source_entry_position": 211
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "7ZOo6mdnAzo",
+      "title": "The 30 second habit that makes procrastination impossible.",
+      "url": "https://www.youtube.com/watch?v=7ZOo6mdnAzo",
+      "playlists": [
+        {
+          "playlist_title": "procrastination",
+          "playlist_id": "PLwCumDyBKsXVA1VqZEgMS0iOPVlrNgE1d",
+          "source_entry_position": 216
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "uvjJEQBGbJQ",
+      "title": "The Unfair Advantage Of The 60 Second Procrastination Rule",
+      "url": "https://www.youtube.com/watch?v=uvjJEQBGbJQ",
+      "playlists": [
+        {
+          "playlist_title": "RAG",
+          "playlist_id": "PLwCumDyBKsXUFq9tIDyQtIuzLW4ZkkyB-",
+          "source_entry_position": 136
+        },
+        {
+          "playlist_title": "n6",
+          "playlist_id": "PLwCumDyBKsXVmsqubbNO47zhqsz8hEEHP",
+          "source_entry_position": 256
+        },
+        {
+          "playlist_title": "Org",
+          "playlist_id": "PLwCumDyBKsXVVINCHW9muwBQeinw5WSXn",
+          "source_entry_position": 491
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "-1QzWCd9bFg",
+      "title": "How to Take Control Of Your Life │ Full Procrastination Protocol",
+      "url": "https://www.youtube.com/watch?v=-1QzWCd9bFg",
+      "playlists": [
+        {
+          "playlist_title": "n6",
+          "playlist_id": "PLwCumDyBKsXVmsqubbNO47zhqsz8hEEHP",
+          "source_entry_position": 13
+        },
+        {
+          "playlist_title": "Org",
+          "playlist_id": "PLwCumDyBKsXVVINCHW9muwBQeinw5WSXn",
+          "source_entry_position": 210
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "EkDxsQRbIwo",
+      "title": "Give Me 23 Minutes And I'll Destroy Your Procrastination Forever",
+      "url": "https://www.youtube.com/watch?v=EkDxsQRbIwo",
+      "playlists": [
+        {
+          "playlist_title": "n6",
+          "playlist_id": "PLwCumDyBKsXVmsqubbNO47zhqsz8hEEHP",
+          "source_entry_position": 172
+        },
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 160
+        },
+        {
+          "playlist_title": "Org",
+          "playlist_id": "PLwCumDyBKsXVVINCHW9muwBQeinw5WSXn",
+          "source_entry_position": 483
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "XWA-8AnuSMs",
+      "title": "Chronic Procrastinator Tracks Her Time ⏰",
+      "url": "https://www.youtube.com/watch?v=XWA-8AnuSMs",
+      "playlists": [
+        {
+          "playlist_title": "ai tmp",
+          "playlist_id": "PLwCumDyBKsXUSOEXX3wr84J2aUIAouAbr",
+          "source_entry_position": 44
+        },
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 91
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "arj7oStGLkU",
+      "title": "Inside the Mind of a Master Procrastinator | Tim Urban | TED",
+      "url": "https://www.youtube.com/watch?v=arj7oStGLkU",
+      "playlists": [
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 43
+        },
+        {
+          "playlist_title": "watch2",
+          "playlist_id": "PLwCumDyBKsXWxyxuRyJmtcypR2BOkFPdC",
+          "source_entry_position": 181
+        },
+        {
+          "playlist_title": "Real mot",
+          "playlist_id": "PLwCumDyBKsXW0I-7AQ2WVJWxhgnEeQwSH",
+          "source_entry_position": 7
+        },
+        {
+          "playlist_title": "wl5",
+          "playlist_id": "PLwCumDyBKsXWNGaxNr8uwBQjmpNcVpYoR",
+          "source_entry_position": 14
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "1nBwfZZvjKo",
+      "title": "The Science of Procrastination - And How To Manage It",
+      "url": "https://www.youtube.com/watch?v=1nBwfZZvjKo",
+      "playlists": [
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 44
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "iow5V3Qlvwo",
+      "title": "The procrastination cure you don't want to hear",
+      "url": "https://www.youtube.com/watch?v=iow5V3Qlvwo",
+      "playlists": [
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 50
+        },
+        {
+          "playlist_title": "Org",
+          "playlist_id": "PLwCumDyBKsXVVINCHW9muwBQeinw5WSXn",
+          "source_entry_position": 56
+        },
+        {
+          "playlist_title": "tmp1",
+          "playlist_id": "PLwCumDyBKsXUXRE2p2NkucHZyGtFzAx0k",
+          "source_entry_position": 249
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "CPxrQNc-bxU",
+      "title": "Productivity Strategies for Procrastinators | The Anti-Planner",
+      "url": "https://www.youtube.com/watch?v=CPxrQNc-bxU",
+      "playlists": [
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 56
+        },
+        {
+          "playlist_title": "Org",
+          "playlist_id": "PLwCumDyBKsXVVINCHW9muwBQeinw5WSXn",
+          "source_entry_position": 100
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "4x7MkLDGnu8",
+      "title": "The ONLY Way To Stop Procrastinating | Mel Robbins",
+      "url": "https://www.youtube.com/watch?v=4x7MkLDGnu8",
+      "playlists": [
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 59
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "7Co-TmrLiYk",
+      "title": "If you're procrastinating right now, do this ⏱",
+      "url": "https://www.youtube.com/watch?v=7Co-TmrLiYk",
+      "playlists": [
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 60
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "ikuez6bamKE",
+      "title": "How to Stop Procrastinating",
+      "url": "https://www.youtube.com/watch?v=ikuez6bamKE",
+      "playlists": [
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 61
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "52lZmIafep4",
+      "title": "Self Worth Theory: The Key to Understanding & Overcoming Procrastination | Nic Voge | TEDxPrincetonU",
+      "url": "https://www.youtube.com/watch?v=52lZmIafep4",
+      "playlists": [
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 62
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "sYi5kaUVdco",
+      "title": "watch this if you always procrastinate",
+      "url": "https://www.youtube.com/watch?v=sYi5kaUVdco",
+      "playlists": [
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 70
+        },
+        {
+          "playlist_title": "Org",
+          "playlist_id": "PLwCumDyBKsXVVINCHW9muwBQeinw5WSXn",
+          "source_entry_position": 93
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "hJZ5v7dpKKM",
+      "title": "How to Stop Procrastinating (Forever)",
+      "url": "https://www.youtube.com/watch?v=hJZ5v7dpKKM",
+      "playlists": [
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 77
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "r58mkbQ-JmU",
+      "title": "How To Beat Procrastination",
+      "url": "https://www.youtube.com/watch?v=r58mkbQ-JmU",
+      "playlists": [
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 143
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "qriNOmeSrmI",
+      "title": "You're not Lazy: How to End Procrastination For Life",
+      "url": "https://www.youtube.com/watch?v=qriNOmeSrmI",
+      "playlists": [
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 178
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "mx_j9urcPUY",
+      "title": "ADHD and Procrastination | Dopamine Detox — ADD 2 Focus.",
+      "url": "https://www.youtube.com/watch?v=mx_j9urcPUY",
+      "playlists": [
+        {
+          "playlist_title": "adhd",
+          "playlist_id": "PLwCumDyBKsXXrHi2It1YCwy6OMsP65CtL",
+          "source_entry_position": 256
+        },
+        {
+          "playlist_title": "W4",
+          "playlist_id": "PLwCumDyBKsXViM7ouQIkp89oBkxMtwkmZ",
+          "source_entry_position": 69
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "0CmtDk-joT4",
+      "title": "Two 2-minute Rules to Beat Procrastination (in 2 minutes)",
+      "url": "https://www.youtube.com/watch?v=0CmtDk-joT4",
+      "playlists": [
+        {
+          "playlist_title": "tmp2",
+          "playlist_id": "PLwCumDyBKsXU6y5NeSg85bFpC2mp65PEe",
+          "source_entry_position": 84
+        },
+        {
+          "playlist_title": "Org",
+          "playlist_id": "PLwCumDyBKsXVVINCHW9muwBQeinw5WSXn",
+          "source_entry_position": 57
+        },
+        {
+          "playlist_title": "tmp1",
+          "playlist_id": "PLwCumDyBKsXUXRE2p2NkucHZyGtFzAx0k",
+          "source_entry_position": 322
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "rDdoUbCFn24",
+      "title": "No.1 Habit & Procrastination Expert: We've Got ADHD Wrong! Break Any Habit & Never Be Distracted!",
+      "url": "https://www.youtube.com/watch?v=rDdoUbCFn24",
+      "playlists": [
+        {
+          "playlist_title": "Org",
+          "playlist_id": "PLwCumDyBKsXVVINCHW9muwBQeinw5WSXn",
+          "source_entry_position": 246
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "ipJIV6hc1Ls",
+      "title": "CPTSD: Breaking The Toxic Shame/Procrastination Cycle With Self-Compassion",
+      "url": "https://www.youtube.com/watch?v=ipJIV6hc1Ls",
+      "playlists": [
+        {
+          "playlist_title": "Org",
+          "playlist_id": "PLwCumDyBKsXVVINCHW9muwBQeinw5WSXn",
+          "source_entry_position": 424
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "Mhs2DcmGXSE",
+      "title": "Eat That Frog by Brian Tracy (animated book summary) - How to stop procrastinating",
+      "url": "https://www.youtube.com/watch?v=Mhs2DcmGXSE",
+      "playlists": [
+        {
+          "playlist_title": "W4",
+          "playlist_id": "PLwCumDyBKsXViM7ouQIkp89oBkxMtwkmZ",
+          "source_entry_position": 82
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "AfRWeybdF2c",
+      "title": "New Study Reveals Why You Procrastinate (Not Laziness or Time-Management)",
+      "url": "https://www.youtube.com/watch?v=AfRWeybdF2c",
+      "playlists": [
+        {
+          "playlist_title": "W4",
+          "playlist_id": "PLwCumDyBKsXViM7ouQIkp89oBkxMtwkmZ",
+          "source_entry_position": 102
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "rqtR683-Vic",
+      "title": "I Tried to go 7 Days Without Procrastinating...This is what happened",
+      "url": "https://www.youtube.com/watch?v=rqtR683-Vic",
+      "playlists": [
+        {
+          "playlist_title": "Charisma",
+          "playlist_id": "PLwCumDyBKsXVPcavN2nrhQ2tq9tnvrB3a",
+          "source_entry_position": 61
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    },
+    {
+      "video_id": "N60bMFqkcpU",
+      "title": "5 Steps to Stop Procrastinating, Focus & Be Productive",
+      "url": "https://www.youtube.com/watch?v=N60bMFqkcpU",
+      "playlists": [
+        {
+          "playlist_title": "w6",
+          "playlist_id": "PLwCumDyBKsXUx7wG2-sU1_VtBpjgDFJ0q",
+          "source_entry_position": 2
+        }
+      ],
+      "link_validation": {
+        "status": "checked",
+        "status_code": 200,
+        "error": null,
+        "meaning": "HTTP status from ranged GET (Range: bytes=0-0) to watch URL; status alone does not establish video availability."
+      },
+      "video_availability": {
+        "status": "public_available",
+        "checked_at": "2026-10-20T19:08:19Z",
+        "method": "Independent watch-page ranged GET plus public YouTube oEmbed endpoint.",
+        "evidence": "Public YouTube oEmbed returned HTTP 200 with metadata.",
+        "caveat": "YouTube watch-page HTTP responses can return 200 for inaccessible videos; oEmbed failures can reflect privacy, deletion, restrictions, or transient errors."
+      }
+    }
+  ],
+  "video_availability_counts": {
+    "public_available": 43,
+    "private": 0,
+    "deleted_not_found": 0,
+    "indeterminate": 0
+  }
+}
+  </script>
+  <script>
+    (() => {
+      const list = document.getElementById('playlists');
+      const search = document.getElementById('search');
+      const status = document.getElementById('status');
+      const first = (...values) => values.find(value => value !== null && value !== undefined && value !== '');
+      const text = value => typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+      const array = value => Array.isArray(value) ? value : [];
+      const field = (object, keys) => {
+        if (!object || typeof object !== 'object') return undefined;
+        for (const key of keys) if (object[key] !== null && object[key] !== undefined && object[key] !== '') return object[key];
+        return undefined;
+      };
+      const safeUrl = value => {
+        const raw = text(value).trim();
+        if (!raw) return '';
+        try {
+          const url = new URL(raw, window.location.href);
+          return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : '';
+        } catch { return ''; }
+      };
+      const linkOrText = (label, href, className) => {
+        const node = document.createElement(href ? 'a' : 'span');
+        node.className = className;
+        node.textContent = label || 'Untitled';
+        if (href) { node.href = href; node.target = '_blank'; node.rel = 'noopener'; }
+        else if (className.includes('video-title')) node.classList.add('unlinked');
+        return node;
+      };
+      const addEmpty = (heading, message) => {
+        const box = document.createElement('div'); box.className = 'empty';
+        const strong = document.createElement('strong'); strong.textContent = heading;
+        const detail = document.createElement('span'); detail.textContent = message;
+        box.append(strong, detail); list.replaceChildren(box);
+      };
+      const render = data => {
+        const videos = array(data && data.videos);
+        if (!videos.length) {
+          addEmpty('No matching videos', 'The embedded collection contains no video entries.');
+          status.textContent = ''; return;
+        }
+        const cards = videos.map((video, i) => {
+          video = video && typeof video === 'object' ? video : {};
+          const title = text(first(field(video, ['title', 'name']), 'Untitled video'));
+          const videoId = text(field(video, ['video_id', 'videoId', 'id'])).trim();
+          const videoUrl = safeUrl(field(video, ['url', 'video_url', 'videoUrl', 'link', 'href'])) || safeUrl(videoId ? `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}` : '');
+          const card = document.createElement('article'); card.className = 'playlist';
+          const ul = document.createElement('ul'); ul.className = 'video-list';
+          const row = document.createElement('li'); row.className = 'video-row';
+          const index = document.createElement('span'); index.className = 'video-index'; index.textContent = String(i + 1).padStart(2, '0');
+          const titleNode = document.createElement('p'); titleNode.className = 'video-title'; titleNode.append(linkOrText(title, videoUrl, 'video-title'));
+          const copy = document.createElement('div'); copy.className = 'video-copy'; copy.append(titleNode);
+          if (videoUrl) {
+            const watch = document.createElement('a'); watch.className = 'watch-link'; watch.href = videoUrl;
+            watch.target = '_blank'; watch.rel = 'noopener'; watch.textContent = 'Watch on YouTube ↗'; copy.append(watch);
+          }
+          if (videoId) {
+            const preview = document.createElement('button'); preview.className = 'video-preview'; preview.type = 'button';
+            preview.setAttribute('aria-label', `Play preview: ${title}`);
+            const thumbnail = document.createElement('img'); thumbnail.src = `https://i.ytimg.com/vi/${encodeURIComponent(videoId)}/hqdefault.jpg`;
+            thumbnail.alt = ''; thumbnail.loading = 'lazy'; thumbnail.decoding = 'async';
+            preview.append(thumbnail);
+            preview.addEventListener('click', () => {
+              const frame = document.createElement('iframe'); frame.className = 'video-player';
+              frame.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1`;
+              frame.title = `YouTube video player: ${title}`;
+              frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+              frame.allowFullscreen = true;
+              frame.referrerPolicy = 'strict-origin-when-cross-origin';
+              frame.loading = 'lazy';
+              preview.replaceWith(frame);
+            }, { once: true });
+            row.append(index, preview, copy);
+          } else {
+            row.append(index, copy);
+          }
+          ul.append(row); card.append(ul);
+          return card;
+        });
+        list.replaceChildren(...cards);
+        status.textContent = `${videos.length} matching videos`;
+        search.dispatchEvent(new Event('input'));
+      };
+      search.addEventListener('input', () => {
+        const query = search.value.trim().toLocaleLowerCase();
+        let visible = 0;
+        for (const card of list.querySelectorAll('.playlist')) {
+          const match = !query || card.textContent.toLocaleLowerCase().includes(query);
+          card.hidden = !match;
+          if (match) visible++;
+        }
+        if (list.querySelector('.playlist')) {
+          let empty = list.querySelector('.empty');
+          if (query && visible === 0) {
+            if (!empty) { empty = document.createElement('div'); empty.className = 'empty'; list.append(empty); }
+            const heading = document.createElement('strong'); heading.textContent = 'No matches';
+            const message = document.createElement('span'); message.textContent = 'Try another search term.';
+            empty.replaceChildren(heading, message);
+          } else if (empty) empty.remove();
+          status.textContent = query ? `${visible} matching videos` : `${list.querySelectorAll('.playlist').length} matching videos`;
+        }
+      });
+      render(JSON.parse(document.getElementById('playlist-data').textContent));
+    })();
+  </script>
+</body>
+</html>
